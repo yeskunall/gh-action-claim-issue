@@ -1,0 +1,52 @@
+name: Auto-assign issue on claim
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  assign-issue:
+    # Only run on issue comments (not PR comments) and when comment contains "claim it"
+    if: github.event.issue.pull_request == null && contains(github.event.comment.body, 'claim it')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if issue is already claimed
+        id: check-claimed
+        run: |
+          # Check if the 'claimed' label exists on the issue
+          if echo '${{ toJSON(github.event.issue.labels.*.name) }}' | grep -q '"claimed"'; then
+            echo "already_claimed=true" >> $GITHUB_OUTPUT
+            echo "Issue is already claimed"
+          else
+            echo "already_claimed=false" >> $GITHUB_OUTPUT
+            echo "Issue is not yet claimed"
+          fi
+
+      - name: Assign issue to commenter
+        if: steps.check-claimed.outputs.already_claimed == 'false'
+        uses: actions-cool/issues-helper@9861779a695cf1898bd984c727f685f351cfc372
+        with:
+          actions: "add-assignees"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          assignees: ${{ github.event.comment.user.login }}
+
+      - name: Add claimed label
+        if: steps.check-claimed.outputs.already_claimed == 'false'
+        uses: actions-cool/issues-helper@9861779a695cf1898bd984c727f685f351cfc372
+        with:
+          actions: "add-labels"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          labels: "claimed"
+
+      - name: Notify user if already claimed
+        if: steps.check-claimed.outputs.already_claimed == 'true'
+        uses: actions-cool/issues-helper@9861779a695cf1898bd984c727f685f351cfc372
+        with:
+          actions: "create-comment"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            @${{ github.event.comment.user.login }} This issue has already been claimed by someone else. Please find another issue to work on. Thank you! 🙏
