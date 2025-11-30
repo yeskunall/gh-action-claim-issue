@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: 0 0 * * *
   issue_comment:
-    types: [created]
+    types: [created, edited]
   workflow_dispatch:
 
 jobs:
@@ -17,5 +17,11 @@ jobs:
         uses: takanome-dev/assign-issue-action@abb1f36ba8a8634cda83d4e0513365164be3ad36 # v2.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          maintainers: "yeskunall" # list of maintainers with comma separated like 'takanome-dev,octocat'
-          # learn more about the inputs below ⬇
+          maintainers: "yeskunall" # A comma-separated list of maintainers authorized to use /assign and /unassign commands.
+          block_assignment: true # Block self-assignment after a user was previously unassigned.
+          days_until_unassign: 7 # How many days should we give the user before the issue is automatically unassigned from them?
+          enable_auto_suggestion: false # A boolean input that controls whether the action should automatically check user comments for phrases signaling interest in issue assignment.
+          # enable_reminder: true # Send a reminder before automatic unassignment occurs.
+          max_assignments: 1 # The maximum number of issues a user can be assigned to at once.
+          # pin_label: "" # A label that prevents the user from being unassigned, typically for issues that are expected to take a long time.
+          # required_label: "" # Should we have a label just for quality week issues?
