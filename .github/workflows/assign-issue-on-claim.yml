@@ -9,7 +9,7 @@ on:
 
 jobs:
   assign:
-    if: github.repository == "yeskunall/gh-action-claim-issue"
+    if: github.repository == 'yeskunall/gh-action-claim-issue'
     permissions:
       issues: write
     runs-on: ubuntu-latest
